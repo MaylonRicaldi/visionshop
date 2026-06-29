@@ -1,17 +1,13 @@
 // ============================================
 // VISION SHOP — Checkout Module
-// Auth delegado a register.js
 // ============================================
 
 import { initRegisterModule, getCurrentUser } from "../register.js";
 import { createOrder } from "../firebase/firestore.js";
 import { getProductById } from "../firebase/firestore.js";
 
-// ⚠️ CONFIGURACIÓN CULQI
-// Reemplaza con tu Public Key de Culqi (https://culqi.com/panel/)
 const CULQI_PUBLIC_KEY = "pk_test_i3rfE1AO7SnQkUdl";
-// URL de tu Vercel API (después de hacer deploy)
-const API_BASE = "https://visionshop-api.vercel.app/api"; // ✅ Vercel API activa
+const API_BASE = "https://visionshop-api.vercel.app/api";
 
 // ---- HELPERS ----
 const getCart  = () => JSON.parse(localStorage.getItem("vs_cart") || "[]");
@@ -110,7 +106,7 @@ function initPaymentToggle() {
   });
 }
 
-// ---- REVALIDAR STOCK ANTES DE CONFIRMAR ----
+// ---- REVALIDAR STOCK ----
 async function validateStock(cart) {
   for (const item of cart) {
     const fresh = await getProductById(item.id);
@@ -118,7 +114,7 @@ async function validateStock(cart) {
     if (fresh.stock < item.qty) {
       return {
         valid: false,
-        msg: `"${item.name}" solo tiene ${fresh.stock} unidades disponibles. Actualiza tu carrito.`
+        msg: `"${item.name}" solo tiene ${fresh.stock} unidades disponibles.`
       };
     }
   }
@@ -126,14 +122,13 @@ async function validateStock(cart) {
 }
 
 // ---- CULQI CHECKOUT ----
-function loadCulqiScript() {
-  return new Promise((resolve, reject) => {
-    if (typeof window.CulqiCheckout !== "undefined") return resolve();
+async function esperarCulqi() {
+  if (typeof window.CulqiCheckout !== "undefined") return;
 
+  return new Promise((resolve, reject) => {
     const s = document.createElement("script");
     s.src = "https://checkout.culqi.com/js/v4";
     s.onload = () => {
-      // Esperar a que CulqiCheckout esté disponible
       const check = () => {
         if (typeof window.CulqiCheckout !== "undefined") return resolve();
         setTimeout(check, 100);
@@ -145,37 +140,42 @@ function loadCulqiScript() {
   });
 }
 
-let culqiInstance = null;
+async function abrirCulqi() {
+  showToast("Abriendo pasarela de pago...");
 
-async function initCulqi() {
   try {
-    await loadCulqiScript();
+    await esperarCulqi();
   } catch {
-    showToast("Error al cargar la pasarela de pago. Verifica tu conexión.");
-    return null;
+    showToast("Error al cargar la pasarela de pago.");
+    isConfirming = false;
+    return;
   }
 
-  culqiInstance = new window.CulqiCheckout({
+  const total = getTotal();
+
+  const checkout = new window.CulqiCheckout({
     publicKey: CULQI_PUBLIC_KEY,
     settings: {
       title: "VISION SHOP",
       currency: "PEN",
       description: "Pedido VISION SHOP",
-      amount: 0,
+      amount: Math.round(total * 100),
     },
     charge: async (token) => {
-      await processCulqiCharge(token);
+      await procesarPagoCulqi(token);
     }
   });
 
-  return culqiInstance;
+  // Allow re-click if user closes the modal without paying
+  isConfirming = false;
+
+  checkout.open();
 }
 
-async function processCulqiCharge(token) {
+async function procesarPagoCulqi(token) {
   const user = getCurrentUser();
   const cart = getCart();
   const total = getTotal();
-
   const btn = document.getElementById("btnConfirm");
   setLoading(btn, true, "PROCESANDO PAGO...");
 
@@ -200,7 +200,6 @@ async function processCulqiCharge(token) {
       return;
     }
 
-    // Pago exitoso → crear orden en Firestore
     const fullName = document.getElementById("fullName")?.value.trim();
     const phone    = document.getElementById("phone")?.value.trim();
     const address  = document.getElementById("address")?.value.trim();
@@ -227,73 +226,66 @@ async function processCulqiCharge(token) {
   }
 }
 
-async function openCulqiCheckout() {
-  if (!culqiInstance) culqiInstance = await initCulqi();
-  if (!culqiInstance) { showToast("Error al cargar Culqi. Recarga la página."); return; }
-
-  const total = getTotal();
-  culqiInstance.settings.amount = Math.round(total * 100);
-  culqiInstance.open();
-}
-
 // ---- CONFIRMAR PEDIDO ----
 document.getElementById("btnConfirm")?.addEventListener("click", async () => {
   if (isConfirming) return;
+  isConfirming = true;
 
-  const cart = getCart();
-  if (!cart.length) { showToast("Tu carrito está vacío."); return; }
+  try {
+    showToast("Verificando datos...");
 
-  const user = getCurrentUser();
-  if (!user) { showToast("Sesión expirada. Inicia sesión de nuevo."); showAuthGate(); return; }
+    const cart = getCart();
+    if (!cart.length) { showToast("Tu carrito está vacío."); isConfirming = false; return; }
 
-  const fullName = document.getElementById("fullName")?.value.trim();
-  const phone    = document.getElementById("phone")?.value.trim();
-  const address  = document.getElementById("address")?.value.trim();
-  const city     = document.getElementById("city")?.value.trim();
-  const region   = document.getElementById("region")?.value.trim();
+    const user = getCurrentUser();
+    if (!user) { showToast("Sesión expirada. Inicia sesión de nuevo."); showAuthGate(); isConfirming = false; return; }
 
-  if (!fullName || !phone || !address || !city) {
-    showToast("Completa todos los datos de envío.");
-    return;
-  }
+    const fullName = document.getElementById("fullName")?.value.trim();
+    const phone    = document.getElementById("phone")?.value.trim();
+    const address  = document.getElementById("address")?.value.trim();
+    const city     = document.getElementById("city")?.value.trim();
+    const region   = document.getElementById("region")?.value.trim();
 
-  const paymentMethod = document.querySelector('input[name="payment"]:checked')?.value;
+    if (!fullName || !phone || !address || !city) {
+      showToast("Completa todos los datos de envío.");
+      isConfirming = false;
+      return;
+    }
 
-  // Pago con Culqi → abre checkout de Culqi antes de procesar
-  if (paymentMethod === "culqi") {
-    isConfirming = true;
+    const paymentMethod = document.querySelector('input[name="payment"]:checked')?.value;
+
+    if (paymentMethod === "culqi") {
+      const stockCheck = await validateStock(cart);
+      if (!stockCheck.valid) {
+        showToast(stockCheck.msg);
+        isConfirming = false;
+        return;
+      }
+      await abrirCulqi();
+      return;
+    }
+
+    const opNumber = paymentMethod === "yape"
+      ? document.getElementById("opNumber")?.value.trim()
+      : null;
+
+    if (paymentMethod === "yape" && !opNumber) {
+      showToast("Ingresa el número de operación Yape.");
+      isConfirming = false;
+      return;
+    }
+
+    const btn = document.getElementById("btnConfirm");
+    setLoading(btn, true, "CONFIRMAR PEDIDO");
+
     const stockCheck = await validateStock(cart);
     if (!stockCheck.valid) {
       showToast(stockCheck.msg);
       isConfirming = false;
+      setLoading(btn, false, "CONFIRMAR PEDIDO");
       return;
     }
-    openCulqiCheckout();
-    return;
-  }
 
-  const opNumber = paymentMethod === "yape"
-    ? document.getElementById("opNumber")?.value.trim()
-    : null;
-
-  if (paymentMethod === "yape" && !opNumber) {
-    showToast("Ingresa el número de operación Yape.");
-    return;
-  }
-
-  const btn = document.getElementById("btnConfirm");
-  isConfirming = true;
-  setLoading(btn, true, "CONFIRMAR PEDIDO");
-
-  const stockCheck = await validateStock(cart);
-  if (!stockCheck.valid) {
-    showToast(stockCheck.msg);
-    isConfirming = false;
-    setLoading(btn, false, "CONFIRMAR PEDIDO");
-    return;
-  }
-
-  try {
     const orderId = await createOrder({
       user,
       cart,
@@ -307,11 +299,14 @@ document.getElementById("btnConfirm")?.addEventListener("click", async () => {
     document.getElementById("successModal").style.display = "flex";
 
   } catch (err) {
-    console.error("Error al confirmar pedido:", err);
-    showToast("Error al procesar el pedido. Intenta de nuevo.");
+    console.error("Error:", err);
+    showToast("Ocurrió un error. Revisa la consola (F12).");
   } finally {
-    isConfirming = false;
-    setLoading(btn, false, "CONFIRMAR PEDIDO");
+    if (document.querySelector('input[name="payment"]:checked')?.value !== "culqi") {
+      isConfirming = false;
+      const btn = document.getElementById("btnConfirm");
+      if (btn) setLoading(btn, false, "CONFIRMAR PEDIDO");
+    }
   }
 });
 
