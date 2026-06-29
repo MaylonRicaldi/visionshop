@@ -11,7 +11,7 @@ import { getProductById } from "../firebase/firestore.js";
 // Reemplaza con tu Public Key de Culqi (https://culqi.com/panel/)
 const CULQI_PUBLIC_KEY = "pk_test_i3rfE1AO7SnQkUdl";
 // URL de tu Vercel API (después de hacer deploy)
-const API_BASE = "https://visionshop-api.vercel.app/api";
+const API_BASE = "https://visionshop-api.vercel.app/api"; // ✅ Vercel API activa
 
 // ---- HELPERS ----
 const getCart  = () => JSON.parse(localStorage.getItem("vs_cart") || "[]");
