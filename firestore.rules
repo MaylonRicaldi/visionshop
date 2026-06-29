@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Products: lectura pública, escritura solo admin
+    match /products/{id} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.email == 'admin@visionshop.pe';
+    }
+
+    // Orders: usuario puede crear y leer sus propias órdenes
+    match /orders/{id} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.status == 'pending';
+      allow write: if request.auth != null && request.auth.token.email == 'admin@visionshop.pe';
+    }
+
+    // Users: solo el propio usuario
+    match /users/{id} {
+      allow read, write: if request.auth != null && request.auth.uid == id;
+    }
+
+    // Reclamos: cualquiera puede crear, solo admin puede leer
+    match /reclamos/{id} {
+      allow create: if true;
+      allow read: if request.auth != null && request.auth.token.email == 'admin@visionshop.pe';
+      allow write: if request.auth != null && request.auth.token.email == 'admin@visionshop.pe';
+    }
+  }
+}

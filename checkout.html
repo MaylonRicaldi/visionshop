@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Checkout — VISION SHOP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=Playfair+Display:ital@1&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="assets/css/styles.css"/>
+  <link rel="stylesheet" href="assets/css/checkout.css"/>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0a0a'/%3E%3Ctext x='16' y='22' text-anchor='middle' fill='%23c8a97e' font-family='sans-serif' font-weight='bold' font-size='16'%3EVS%3C/text%3E%3C/svg%3E"/>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">VISION<span>SHOP</span></a>
+      <button class="hamburger" id="hamburger" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="main-nav" id="mainNav">
+        <a href="cart.html" class="nav-link">← VOLVER AL CARRITO</a>
+      </nav>
+      <div class="user-status" id="userStatus"></div>
+    </div>
+  </header>
+
+  <!-- AUTH GATE OVERLAY — se muestra si el usuario no está logueado -->
+  <div class="auth-gate" id="authGate">
+    <div class="auth-box">
+      <div class="auth-logo">VISION<span>SHOP</span></div>
+      <p class="auth-subtitle">Inicia sesión para completar tu compra</p>
+
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">INICIAR SESIÓN</button>
+        <button class="auth-tab" data-tab="register">CREAR CUENTA</button>
+      </div>
+
+      <!-- Login form -->
+      <div class="auth-form" id="loginForm">
+        <div class="input-group">
+          <label>Correo electrónico</label>
+          <input type="email" id="loginEmail" placeholder="tu@correo.com" autocomplete="email"/>
+        </div>
+        <div class="input-group">
+          <label>Contraseña</label>
+          <div class="pass-wrap">
+            <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"/>
+            <button class="toggle-pass" data-target="loginPass">👁</button>
+          </div>
+        </div>
+        <div class="forgot-link"><a href="#" id="forgotLink">¿Olvidaste tu contraseña?</a></div>
+        <p class="auth-error" id="loginError"></p>
+        <button class="btn-auth" id="btnLogin">INGRESAR</button>
+      </div>
+
+      <!-- Register form -->
+      <div class="auth-form hidden" id="registerForm">
+        <div class="input-group">
+          <label>Correo electrónico</label>
+          <input type="email" id="regEmail" placeholder="tu@correo.com" autocomplete="email"/>
+        </div>
+        <div class="input-group">
+          <label>Contraseña</label>
+          <div class="pass-wrap">
+            <input type="password" id="regPass" placeholder="Mínimo 6 caracteres" autocomplete="new-password"/>
+            <button class="toggle-pass" data-target="regPass">👁</button>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Confirmar contraseña</label>
+          <div class="pass-wrap">
+            <input type="password" id="regPassConfirm" placeholder="Repite la contraseña" autocomplete="new-password"/>
+            <button class="toggle-pass" data-target="regPassConfirm">👁</button>
+          </div>
+        </div>
+        <p class="auth-error" id="regError"></p>
+        <button class="btn-auth" id="btnRegister">CREAR CUENTA</button>
+      </div>
+
+      <!-- Divider -->
+      <div class="auth-or"><span>o continúa como</span></div>
+      <a href="index.html" class="btn-guest">Ver más productos</a>
+    </div>
+  </div>
+
+  <!-- CHECKOUT CONTENT — visible solo cuando el usuario está autenticado -->
+  <main class="checkout-main" id="checkoutContent" style="display:none">
+    <div class="checkout-wrap">
+      <h1 class="page-title">FINALIZAR PEDIDO</h1>
+      <div class="checkout-steps">
+        <span class="step active">Carrito</span>
+        <span class="step-arrow">→</span>
+        <span class="step active">Datos</span>
+        <span class="step-arrow">→</span>
+        <span class="step">Pago</span>
+        <span class="step-arrow">→</span>
+        <span class="step">Confirmación</span>
+      </div>
+
+      <div class="checkout-layout">
+        <!-- Formulario envío -->
+        <div class="checkout-form-section">
+          <div class="user-greeting" id="userGreeting"></div>
+
+          <div class="form-block">
+            <h3>DATOS DE ENVÍO</h3>
+            <div class="form-row">
+              <div class="input-group">
+                <label>Nombre completo</label>
+                <input type="text" id="fullName" placeholder="Juan Pérez"/>
+              </div>
+              <div class="input-group">
+                <label>Teléfono</label>
+                <input type="tel" id="phone" placeholder="+51 999 999 999"/>
+              </div>
+            </div>
+            <div class="input-group">
+              <label>Dirección</label>
+              <input type="text" id="address" placeholder="Jr. Lima 123"/>
+            </div>
+            <div class="form-row">
+              <div class="input-group">
+                <label>Ciudad</label>
+                <input type="text" id="city" placeholder="Huancayo"/>
+              </div>
+              <div class="input-group">
+                <label>Región</label>
+                <input type="text" id="region" placeholder="Junín"/>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-block">
+            <h3>MÉTODO DE PAGO</h3>
+            <div class="payment-options">
+              <label class="payment-option">
+                <input type="radio" name="payment" value="culqi"/>
+                <div class="payment-card">
+                  <span class="pay-icon">💳</span>
+                  <span>Tarjeta (Culqi)</span>
+                </div>
+              </label>
+              <label class="payment-option">
+                <input type="radio" name="payment" value="yape" checked/>
+                <div class="payment-card">
+                  <span class="pay-icon">💜</span>
+                  <span>Yape / Plin</span>
+                </div>
+              </label>
+              <label class="payment-option">
+                <input type="radio" name="payment" value="transfer"/>
+                <div class="payment-card">
+                  <span class="pay-icon">🏦</span>
+                  <span>Transferencia</span>
+                </div>
+              </label>
+              <label class="payment-option">
+                <input type="radio" name="payment" value="delivery"/>
+                <div class="payment-card">
+                  <span class="pay-icon">🚚</span>
+                  <span>Contra entrega</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-block" id="yapeBlock">
+            <h3>DATOS YAPE / PLIN</h3>
+            <p class="pay-detail">Realiza el pago al número: <strong>+51 999 000 111</strong></p>
+            <p class="pay-detail">A nombre de: <strong>VISION SHOP S.A.C.</strong></p>
+            <div class="input-group">
+              <label>Número de operación</label>
+              <input type="text" id="opNumber" placeholder="Ej: 123456789"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resumen del pedido -->
+        <aside class="checkout-summary">
+          <h3>RESUMEN</h3>
+          <div id="orderItems" class="order-items-list"></div>
+          <div class="summary-divider"></div>
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <span id="orderSubtotal">S/ 0.00</span>
+          </div>
+          <div class="summary-row">
+            <span>Envío</span>
+            <span class="shipping-cost">Gratis</span>
+          </div>
+          <div class="shipping-note" style="font-size:0.72rem;color:var(--accent-dark);margin-bottom:0.5rem;display:none">
+            ✚ S/ 10 por envío (gratis en compras +S/150)
+          </div>
+          <div class="summary-divider"></div>
+          <div class="summary-row total-row">
+            <span>TOTAL</span>
+            <span id="orderTotal">S/ 0.00</span>
+          </div>
+          <button class="btn-confirm" id="btnConfirm">
+            CONFIRMAR PEDIDO
+          </button>
+          <p class="secure-note">🔒 Pago 100% seguro · Datos protegidos</p>
+          <button class="btn-logout" id="btnLogout">Cerrar sesión</button>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL PEDIDO CONFIRMADO -->
+  <div class="success-modal" id="successModal" style="display:none">
+    <div class="success-box">
+      <div class="success-icon">✓</div>
+      <h2>¡PEDIDO CONFIRMADO!</h2>
+      <p id="successOrderId"></p>
+      <p>Te contactaremos pronto para coordinar la entrega.</p>
+      <a href="index.html" class="btn-auth" style="text-decoration:none;text-align:center;display:block;margin-top:1.5rem">SEGUIR COMPRANDO</a>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <footer class="site-footer">
+    <div class="footer-col">
+      <div class="footer-brand">VISION<span>SHOP</span></div>
+      <p class="footer-desc">Moda de autor — Huancayo, Perú</p>
+    </div>
+    <div class="footer-col">
+      <strong>CONTACTO</strong>
+      <a href="tel:+51950844985">📞 +51 950 844 985</a>
+      <a href="mailto:ricaldimaylon@gmail.com">✉ ricaldimaylon@gmail.com</a>
+      <span>📍 Huancayo, Perú</span>
+    </div>
+    <div class="footer-col">
+      <strong>LEGAL</strong>
+      <a href="terminos.html">Términos y Condiciones</a>
+      <a href="devoluciones.html">Cambios y Devoluciones</a>
+      <a href="libro-reclamaciones.html">Libro de Reclamaciones</a>
+    </div>
+    <div class="footer-col footer-bottom">
+      <span>© 2026 VISION SHOP — Todos los derechos reservados</span>
+      <span class="footer-payments">💜 Yape · Plin · Transferencia · Contra Entrega</span>
+    </div>
+  </footer>
+
+  <button class="scroll-top" id="scrollTop" aria-label="Subir">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M18 15l-6-6-6 6"/>
+    </svg>
+  </button>
+
+  <a href="https://wa.me/51999000111?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20sus%20productos" target="_blank" rel="noopener" class="whatsapp-float" aria-label="WhatsApp">
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+    </svg>
+  </a>
+
+  <script src="https://checkout.culqi.com/js/v4"></script>
+  <script type="module" src="assets/js/firebase/firebase-config.js"></script>
+  <script type="module" src="assets/js/modules/checkout.js"></script>
+  <script src="assets/js/ui.js"></script>
+</body>
+</html>

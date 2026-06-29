@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Seed — VISION SHOP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --black: #0a0a0a; --white: #f5f2ee; --accent: #c8a97e; --accent-dark: #a8824d; --gray: #6b6b6b; --red: #d94f3d; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--white); color: var(--black); font-family: 'DM Sans', sans-serif;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 2rem; text-align: center;
+    }
+    .logo { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; letter-spacing: 0.08em; margin-bottom: 0.3rem; }
+    .logo span { color: var(--accent); }
+    h2 { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 0.12em; margin-bottom: 0.5rem; }
+    p, li { color: var(--gray); font-size: 0.82rem; margin-bottom: 0.5rem; }
+    ul { text-align: left; max-width: 440px; margin: 1rem auto; }
+    .btn { background: var(--black); color: var(--white); border: none; font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 0.12em; padding: 0.9rem 2rem; cursor: pointer; transition: background 0.25s ease; text-decoration: none; display: inline-block; }
+    .btn:hover { background: var(--accent-dark); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-outline { background: transparent; border: 1px solid var(--gray); color: var(--gray); font-size: 0.8rem; margin-top: 1rem; }
+    .btn-outline:hover { border-color: var(--black); color: var(--black); background: transparent; }
+    .input-group { display: flex; flex-direction: column; gap: 0.3rem; text-align: left; margin-bottom: 0.75rem; }
+    .input-group label { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.12em; color: var(--gray); text-transform: uppercase; }
+    .input-group input { background: transparent; border: 1px solid var(--gray-light); padding: 0.6rem 0.8rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--black); outline: none; width: 100%; }
+    .input-group input:focus { border-color: var(--accent); }
+    #status { margin-top: 1rem; font-size: 0.82rem; min-height: 2rem; }
+    #status.done { color: #2a7a3a; }
+    #status.error { color: var(--red); }
+    .hidden { display: none; }
+    .step-box { background: #fff; padding: 1.5rem; max-width: 420px; width: 100%; margin-bottom: 1rem; text-align: center; }
+    .step-num { font-family: 'Bebas Neue', sans-serif; font-size: 0.85rem; color: var(--accent); letter-spacing: 0.15em; margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="logo">VISION<span>SHOP</span></div>
+  <h2>SEMBRAR PRODUCTOS</h2>
+  <p style="max-width:480px">Agrega 36 productos (12 por categoría) a Firestore.</p>
+
+  <!-- STEP 1: Login -->
+  <div class="step-box" id="stepLogin">
+    <div class="step-num">PASO 1 — INICIA SESIÓN</div>
+    <p>Necesitas una cuenta admin para escribir en la base de datos.</p>
+    <div class="input-group">
+      <label>Correo</label>
+      <input type="email" id="loginEmail" placeholder="admin@visionshop.pe"/>
+    </div>
+    <div class="input-group">
+      <label>Contraseña</label>
+      <input type="password" id="loginPass" placeholder="••••••••"/>
+    </div>
+    <p id="loginError" style="color:var(--red);font-size:0.75rem;min-height:1rem"></p>
+    <button class="btn" id="btnLogin">INICIAR SESIÓN</button>
+  </div>
+
+  <!-- STEP 2: Seed -->
+  <div class="step-box hidden" id="stepSeed">
+    <div class="step-num">PASO 2 — SEMBRAR</div>
+    <p>✅ Sesión iniciada como <span id="userEmail" style="color:var(--black);font-weight:500"></span></p>
+    <button class="btn" id="seedBtn">▶ SEMBRAR 36 PRODUCTOS</button>
+    <div id="status"></div>
+  </div>
+
+  <a href="index.html" class="btn btn-outline">← VOLVER AL CATÁLOGO</a>
+
+  <script type="module">
+    import { db } from "./assets/js/firebase/firebase-config.js";
+    import { auth } from "./assets/js/firebase/firebase-config.js";
+    import {
+      addDoc, collection, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import {
+      signInWithEmailAndPassword, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const PRODUCTS = [
+      { name: "Polo Oversize Negro", category: "hombre", price: 59.90, stock: 30, imageUrl: "https://placehold.co/600x800/0a0a0a/c8a97e?text=Polo+Negro", description: "Polo de algodón orgánico con corte oversize. Costuras reforzadas y cuello rib.", style: "Casual", active: true },
+      { name: "Camisa Blanca Premium", category: "hombre", price: 89.90, stock: 20, imageUrl: "https://placehold.co/600x800/f5f2ee/0a0a0a?text=Camisa+Blanca", description: "Camisa de vestir en algodón egipcio. Corte slim fit con botones de nácar.", style: "Formal", active: true },
+      { name: "Chaqueta Jean Clásica", category: "hombre", price: 149.90, stock: 15, imageUrl: "https://placehold.co/600x800/4a6fa5/ffffff?text=Jean+Jacket", description: "Chaqueta denim lavada. Cierre metálico, bolsillos laterales.", style: "Casual", active: true },
+      { name: "Pantalón Chino Beige", category: "hombre", price: 99.90, stock: 25, imageUrl: "https://placehold.co/600x800/d4c5a9/0a0a0a?text=Chino+Beige", description: "Pantalón chino de tela stretch. Corte recto.", style: "Casual", active: true },
+      { name: "Blazer Azul Marino", category: "hombre", price: 229.90, stock: 10, imageUrl: "https://placehold.co/600x800/1a2a3a/ffffff?text=Blazer+Marino", description: "Blazer de lana peinada. Forro interior, solapa en pico.", style: "Formal", active: true },
+      { name: "Short Deportivo Tech", category: "hombre", price: 69.90, stock: 35, imageUrl: "https://placehold.co/600x800/2d2d2d/c8a97e?text=Short+Tech", description: "Short con tejido transpirable. Cintura elástica.", style: "Deportivo", active: true },
+      { name: "Sweater Cuello V Lanar", category: "hombre", price: 129.90, stock: 18, imageUrl: "https://placehold.co/600x800/6b4226/f5f2ee?text=Sweater+Lana", description: "Sweater de lana merino. Cuello V con ribetes.", style: "Casual", active: true },
+      { name: "Cargo Pantalón Verde Oliva", category: "hombre", price: 109.90, stock: 22, imageUrl: "https://placehold.co/600x800/4a5d23/f5f2ee?text=Cargo+Oliva", description: "Pantalón cargo con múltiples bolsillos.", style: "Urbano", active: true },
+      { name: "Parka Invernal Negra", category: "hombre", price: 259.90, stock: 8, imageUrl: "https://placehold.co/600x800/0a0a0a/ffffff?text=Parka+Negra", description: "Parka acolchada con capucha desmontable.", style: "Invierno", active: true },
+      { name: "Camiseta Estampada Urban", category: "hombre", price: 49.90, stock: 40, imageUrl: "https://placehold.co/600x800/ffffff/0a0a0a?text=Urban+Tee", description: "Camiseta de algodón con estampado serigráfico.", style: "Urbano", active: true },
+      { name: "Jeans Rectos Raw Denim", category: "hombre", price: 139.90, stock: 12, imageUrl: "https://placehold.co/600x800/1a2a4a/ffffff?text=Raw+Denim", description: "Jeans de denim crudo japonés. Corte recto.", style: "Casual", active: true },
+      { name: "Chaleco Táctico Multi-bolsillos", category: "hombre", price: 119.90, stock: 14, imageUrl: "https://placehold.co/600x800/3a3a3a/c8a97e?text=Chaleco+Tactico", description: "Chaleco ligero con 8 bolsillos funcionales.", style: "Funcional", active: true },
+      { name: "Vestido Midi Floral", category: "mujer", price: 129.90, stock: 20, imageUrl: "https://placehold.co/600x800/d4a574/ffffff?text=Vestido+Floral", description: "Vestido midi con estampado floral. Corte en A.", style: "Casual", active: true },
+      { name: "Blusa Seda Blanca", category: "mujer", price: 99.90, stock: 18, imageUrl: "https://placehold.co/600x800/f5f2ee/c8a97e?text=Blusa+Seda", description: "Blusa de seda natural con lazo en cuello.", style: "Formal", active: true },
+      { name: "Falda Plisada Metalizada", category: "mujer", price: 119.90, stock: 14, imageUrl: "https://placehold.co/600x800/8a7a9a/ffffff?text=Falda+Plisada", description: "Falda plisada con brillo metálico.", style: "Fiesta", active: true },
+      { name: "Crop Top Algodón Orgánico", category: "mujer", price: 49.90, stock: 35, imageUrl: "https://placehold.co/600x800/0a0a0a/c8a97e?text=Crop+Top", description: "Crop top de algodón orgánico.", style: "Casual", active: true },
+      { name: "Jean Tiro Alto Mom", category: "mujer", price: 139.90, stock: 22, imageUrl: "https://placehold.co/600x800/6a7a8a/ffffff?text=Mom+Jean", description: "Jeans de tiro alto estilo mom.", style: "Casual", active: true },
+      { name: "Blazer Oversize Beige", category: "mujer", price: 199.90, stock: 10, imageUrl: "https://placehold.co/600x800/d4c5a9/0a0a0a?text=Blazer+Beige", description: "Blazer oversize en tono beige.", style: "Formal", active: true },
+      { name: "Vestido Largo Noche", category: "mujer", price: 219.90, stock: 8, imageUrl: "https://placehold.co/600x800/0a0a0a/c8a97e?text=Vestido+Noche", description: "Vestido largo de gala con escote drapeado.", style: "Fiesta", active: true },
+      { name: "Chompa Cardigan Oversize", category: "mujer", price: 149.90, stock: 16, imageUrl: "https://placehold.co/600x800/d4c5a9/0a0a0a?text=Cardigan", description: "Cardigan de lana mezcla, tejido grueso.", style: "Invierno", active: true },
+      { name: "Leggings Deportivos High-Waist", category: "mujer", price: 79.90, stock: 30, imageUrl: "https://placehold.co/600x800/1a1a1a/c8a97e?text=Leggings", description: "Leggings de compresión con cintura alta.", style: "Deportivo", active: true },
+      { name: "Camisa Oversize Cuadros", category: "mujer", price: 89.90, stock: 25, imageUrl: "https://placehold.co/600x800/8a3a3a/f5f2ee?text=Camisa+Cuadros", description: "Camisa de franela con patrón de cuadros.", style: "Casual", active: true },
+      { name: "Short Ciclista Negro", category: "mujer", price: 59.90, stock: 28, imageUrl: "https://placehold.co/600x800/0a0a0a/c8a97e?text=Short+Bike", description: "Short estilo ciclista en nylon elastizado.", style: "Deportivo", active: true },
+      { name: "Top Deportivo Crop", category: "mujer", price: 69.90, stock: 32, imageUrl: "https://placehold.co/600x800/2a2a2a/c8a97e?text=Top+Crop", description: "Top deportivo con soporte medio.", style: "Deportivo", active: true },
+      { name: "Hoodie Básico Premium", category: "unisex", price: 129.90, stock: 25, imageUrl: "https://placehold.co/600x800/0a0a0a/c8a97e?text=Hoodie", description: "Hoodie de algodón fleece 420gsm.", style: "Urbano", active: true },
+      { name: "Gorra Trucker Negra", category: "unisex", price: 45.90, stock: 40, imageUrl: "https://placehold.co/600x800/0a0a0a/c8a97e?text=Gorra+Trucker", description: "Gorra trucker con malla trasera.", style: "Accesorio", active: true },
+      { name: "Mochila Urbana 25L", category: "unisex", price: 99.90, stock: 18, imageUrl: "https://placehold.co/600x800/2a2a2a/c8a97e?text=Mochila", description: "Mochila impermeable con compartimento para laptop.", style: "Accesorio", active: true },
+      { name: "Jogger Algodón French Terry", category: "unisex", price: 89.90, stock: 30, imageUrl: "https://placehold.co/600x800/3a3a3a/ffffff?text=Jogger", description: "Pantalón jogger en French Terry.", style: "Urbano", active: true },
+      { name: "Bandolera Piel Sintética", category: "unisex", price: 69.90, stock: 22, imageUrl: "https://placehold.co/600x800/0a0a0a/c8a97e?text=Bandolera", description: "Bandolera de poliuretano con múltiples compartimentos.", style: "Accesorio", active: true },
+      { name: "Bufanda Tejida Larga", category: "unisex", price: 49.90, stock: 35, imageUrl: "https://placehold.co/600x800/d4c5a9/0a0a0a?text=Bufanda", description: "Bufanda de tejido grueso con flecos.", style: "Invierno", active: true },
+      { name: "Sudadera Cremallera Media", category: "unisex", price: 109.90, stock: 20, imageUrl: "https://placehold.co/600x800/4a4a4a/ffffff?text=Half+Zip", description: "Sudadera con media cremallera.", style: "Deportivo", active: true },
+      { name: "Reloj Analógico Minimalista", category: "unisex", price: 159.90, stock: 12, imageUrl: "https://placehold.co/600x800/0a0a0a/c8a97e?text=Reloj", description: "Reloj de cuarzo con caja de acero inoxidable.", style: "Accesorio", active: true },
+      { name: "Lentes Sol Aviador Dorados", category: "unisex", price: 89.90, stock: 16, imageUrl: "https://placehold.co/600x800/c8a97e/0a0a0a?text=Aviador", description: "Lentes de sol estilo aviador con marco metálico.", style: "Accesorio", active: true },
+      { name: "Chaleco Acolchado Ligero", category: "unisex", price: 139.90, stock: 14, imageUrl: "https://placehold.co/600x800/0a0a0a/c8a97e?text=Chaleco+Puffer", description: "Chaleco acolchado tipo puffer.", style: "Invierno", active: true },
+      { name: "Bolso Tote Lona Cruda", category: "unisex", price: 79.90, stock: 28, imageUrl: "https://placehold.co/600x800/d4c5a9/0a0a0a?text=Tote+Bag", description: "Bolso tote de lona cruda con refuerzo.", style: "Accesorio", active: true },
+      { name: "Set Gorro + Guantes Térmico", category: "unisex", price: 59.90, stock: 38, imageUrl: "https://placehold.co/600x800/0a0a0a/c8a97e?text=Gorro+Set", description: "Set de gorro y guantes térmicos.", style: "Invierno", active: true }
+    ];
+
+    // ---- AUTH STATE ----
+    let currentUser = null;
+
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      document.getElementById("stepLogin").classList.toggle("hidden", !!user);
+      document.getElementById("stepSeed").classList.toggle("hidden", !user);
+      if (user) {
+        document.getElementById("userEmail").textContent = user.email;
+      }
+    });
+
+    // ---- LOGIN ----
+    document.getElementById("btnLogin").addEventListener("click", async () => {
+      const email = document.getElementById("loginEmail").value.trim();
+      const pass = document.getElementById("loginPass").value;
+      const errEl = document.getElementById("loginError");
+      errEl.textContent = "";
+      if (!email || !pass) { errEl.textContent = "Completa todos los campos."; return; }
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+      } catch (e) {
+        errEl.textContent = e.code === "auth/user-not-found"
+          ? "Cuenta no encontrada. Crea un admin en Firebase Console."
+          : "Error al iniciar sesión. Verifica tus credenciales.";
+      }
+    });
+
+    // ---- SEED ----
+    document.getElementById("seedBtn").addEventListener("click", async () => {
+      if (!currentUser) return;
+      const btn = document.getElementById("seedBtn");
+      const status = document.getElementById("status");
+      btn.disabled = true;
+      status.className = "";
+      status.textContent = "⏳ Sembrando productos...";
+
+      let count = 0;
+      for (const product of PRODUCTS) {
+        try {
+          await addDoc(collection(db, "products"), { ...product, createdAt: serverTimestamp() });
+          count++;
+          status.textContent = `⏳ ${count}/${PRODUCTS.length} — "${product.name}"`;
+        } catch (err) {
+          console.error(`Error: "${product.name}"`, err);
+          if (err.code === "permission-denied") {
+            status.className = "error";
+            status.innerHTML = `❌ Permiso denegado. En la consola de Firebase → Firestore → Reglas, cambia la regla de products a:<br><br><code style="background:var(--gray-light);padding:0.3rem 0.6rem;font-size:0.8rem">allow read, write: if true;</code>`;
+            btn.disabled = false;
+            return;
+          }
+          status.textContent = `❌ Error en "${product.name}"`;
+        }
+      }
+
+      status.className = "done";
+      status.textContent = `✅ ¡Listo! ${count} productos agregados correctamente. Recarga la tienda.`;
+      btn.textContent = "✔ COMPLETADO";
+    });
+
+    // Enter key support
+    document.getElementById("loginPass").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") document.getElementById("btnLogin").click();
+    });
+  </script>
+</body>
+</html>

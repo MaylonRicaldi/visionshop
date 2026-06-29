@@ -1,0 +1,584 @@
+/* ============================================
+   VISION SHOP — Global Styles
+   ============================================ */
+
+:root {
+  --black: #0a0a0a;
+  --white: #f5f2ee;
+  --accent: #c8a97e;
+  --accent-dark: #a8824d;
+  --gray: #6b6b6b;
+  --gray-light: #e8e4df;
+  --red: #d94f3d;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-italic: 'Playfair Display', serif;
+  --radius: 2px;
+  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--white);
+  color: var(--black);
+  font-family: var(--font-body);
+  font-weight: 300;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ---- HEADER ---- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--black);
+  color: var(--white);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  height: 64px;
+  gap: 1rem;
+}
+
+.logo {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  letter-spacing: 0.08em;
+  color: var(--white);
+  text-decoration: none;
+}
+
+.logo span {
+  color: var(--accent);
+}
+
+.main-nav {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.filter-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--gray);
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.filter-btn:hover, .filter-btn.active {
+  color: var(--white);
+  border-color: var(--accent);
+}
+
+.nav-link {
+  color: var(--gray);
+  text-decoration: none;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+  transition: color var(--transition);
+}
+
+.nav-link:hover {
+  color: var(--white);
+}
+
+.cart-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  color: var(--white);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cart-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.cart-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--accent);
+  color: var(--black);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cart-icon.active-page svg {
+  color: var(--accent);
+}
+
+/* ---- HAMBURGER MENU ---- */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.hamburger span {
+  width: 22px;
+  height: 2px;
+  background: var(--white);
+  transition: var(--transition);
+}
+
+.hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(4px, 4px); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(4px, -4px); }
+
+/* ---- SEARCH ---- */
+.search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-wrap input {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 0;
+  padding: 0.4rem 0.8rem;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  color: var(--white);
+  width: 0;
+  opacity: 0;
+  transition: all var(--transition);
+  outline: none;
+}
+
+.search-wrap input.expanded {
+  width: 180px;
+  opacity: 1;
+}
+
+.search-wrap input::placeholder {
+  color: var(--gray);
+  letter-spacing: 0.08em;
+}
+
+.search-toggle {
+  background: transparent;
+  border: none;
+  color: var(--gray);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: color var(--transition);
+}
+
+.search-toggle:hover {
+  color: var(--white);
+}
+
+.search-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ---- SCROLL TO TOP ---- */
+.scroll-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 40px;
+  height: 40px;
+  background: var(--black);
+  color: var(--white);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: all var(--transition);
+  z-index: 50;
+}
+
+.scroll-top.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.scroll-top:hover {
+  background: var(--accent-dark);
+  transform: translateY(-2px);
+}
+
+.scroll-top svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ---- WHATSAPP FLOAT ---- */
+.whatsapp-float {
+  position: fixed;
+  bottom: 2rem;
+  left: 2rem;
+  width: 48px;
+  height: 48px;
+  background: #25D366;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(37, 211, 102, 0.3);
+  transition: transform var(--transition), box-shadow var(--transition);
+  z-index: 50;
+}
+
+.whatsapp-float:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 24px rgba(37, 211, 102, 0.4);
+}
+
+.whatsapp-float svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* ---- SPINNER ---- */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: var(--white);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  vertical-align: middle;
+  margin-right: 0.4rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Ticker */
+.header-ticker {
+  background: var(--accent);
+  color: var(--black);
+  padding: 0.3rem 0;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+}
+
+.header-ticker span {
+  display: inline-block;
+  animation: ticker 28s linear infinite;
+}
+
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* ---- TOAST ---- */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--black);
+  color: var(--white);
+  padding: 0.75rem 1.5rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  border-left: 3px solid var(--accent);
+  z-index: 9999;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ---- FOOTER ---- */
+.site-footer {
+  background: var(--black);
+  color: var(--gray);
+  padding: 2.5rem 2rem 1.5rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  margin-top: 4rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 2rem;
+}
+
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footer-col strong {
+  color: var(--white);
+  font-size: 0.68rem;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.25rem;
+}
+
+.footer-col a {
+  color: var(--gray);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+.footer-col a:hover {
+  color: var(--accent);
+}
+
+.footer-brand {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  letter-spacing: 0.08em;
+  color: var(--white);
+}
+
+.footer-brand span {
+  color: var(--accent);
+}
+
+.footer-desc {
+  font-size: 0.68rem;
+  color: var(--gray);
+}
+
+.footer-bottom {
+  grid-column: 1 / -1;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-payments {
+  font-size: 0.68rem;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+}
+
+/* ---- PAGE TITLE ---- */
+.page-title {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 2rem;
+}
+
+/* ---- FORM ELEMENTS ---- */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.input-group label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: var(--gray);
+  text-transform: uppercase;
+}
+
+.input-group input,
+.input-group select {
+  background: transparent;
+  border: 1px solid var(--gray-light);
+  border-radius: var(--radius);
+  padding: 0.7rem 0.9rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--black);
+  outline: none;
+  transition: border-color var(--transition);
+  width: 100%;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+  border-color: var(--accent);
+}
+
+/* ---- SUMMARY ---- */
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  padding: 0.4rem 0;
+}
+
+.total-row {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  letter-spacing: 0.08em;
+  margin-top: 0.5rem;
+}
+
+.summary-divider {
+  height: 1px;
+  background: var(--gray-light);
+  margin: 0.75rem 0;
+}
+
+.btn-checkout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  background: var(--black);
+  color: var(--white);
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.12em;
+  padding: 1rem;
+  margin-top: 1.5rem;
+  transition: background var(--transition);
+  border: none;
+  cursor: pointer;
+}
+
+.btn-checkout:hover {
+  background: var(--accent-dark);
+}
+
+.btn-checkout svg {
+  width: 18px;
+  height: 18px;
+}
+
+.secure-note {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--gray);
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .header-inner {
+    padding: 0 1rem;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .main-nav {
+    display: none;
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    background: var(--black);
+    flex-direction: column;
+    padding: 1rem;
+    gap: 0.25rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    z-index: 99;
+  }
+
+  .main-nav.open {
+    display: flex;
+  }
+
+  .main-nav .filter-btn {
+    width: 100%;
+    text-align: center;
+    padding: 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .main-nav .nav-link {
+    display: block;
+    text-align: center;
+    padding: 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .search-wrap input.expanded {
+    width: 140px;
+  }
+
+  .page-title {
+    font-size: 2rem;
+  }
+
+  .scroll-top {
+    bottom: 1rem;
+    right: 1rem;
+  }
+
+  .whatsapp-float {
+    bottom: 1rem;
+    left: 1rem;
+    width: 42px;
+    height: 42px;
+  }
+
+  .whatsapp-float svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .site-footer {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 2rem 1.25rem 1.25rem;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+}
