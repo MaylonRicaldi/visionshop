@@ -121,30 +121,28 @@ async function validateStock(cart) {
   return { valid: true };
 }
 
-// ---- CULQI CHECKOUT ----
-async function esperarCulqi() {
-  if (typeof window.CulqiCheckout !== "undefined") return;
+// ---- CULQI JS v4 ----
+function cargarCulqi() {
+  if (typeof window.Culqi !== "undefined") return Promise.resolve();
 
   return new Promise((resolve, reject) => {
     const s = document.createElement("script");
     s.src = "https://checkout.culqi.com/js/v4";
     s.onload = () => {
       const check = () => {
-        if (typeof window.CulqiCheckout !== "undefined") return resolve();
-        setTimeout(check, 100);
+        if (typeof window.Culqi !== "undefined") return resolve();
+        setTimeout(check, 50);
       };
       check();
     };
-    s.onerror = () => reject(new Error("No se pudo cargar Culqi JS"));
+    s.onerror = () => reject(new Error("No se pudo cargar Culqi"));
     document.head.appendChild(s);
   });
 }
 
 async function abrirCulqi() {
-  showToast("Abriendo pasarela de pago...");
-
   try {
-    await esperarCulqi();
+    await cargarCulqi();
   } catch {
     showToast("Error al cargar la pasarela de pago.");
     isConfirming = false;
@@ -153,23 +151,25 @@ async function abrirCulqi() {
 
   const total = getTotal();
 
-  const checkout = new window.CulqiCheckout({
-    publicKey: CULQI_PUBLIC_KEY,
-    settings: {
-      title: "VISION SHOP",
-      currency: "PEN",
-      description: "Pedido VISION SHOP",
-      amount: Math.round(total * 100),
-    },
-    charge: async (token) => {
-      await procesarPagoCulqi(token);
-    }
+  Culqi.publicKey = CULQI_PUBLIC_KEY;
+  Culqi.settings({
+    title: "VISION SHOP",
+    currency: "PEN",
+    description: "Pedido - VISION SHOP",
+    amount: Math.round(total * 100),
   });
 
-  // Allow re-click if user closes the modal without paying
-  isConfirming = false;
+  window.culqi = function () {
+    if (Culqi.token) {
+      procesarPagoCulqi(Culqi.token);
+    } else if (Culqi.error) {
+      showToast(Culqi.error.userMessage || "Error al procesar el pago.");
+      isConfirming = false;
+    }
+  };
 
-  checkout.open();
+  isConfirming = false;
+  Culqi.open();
 }
 
 async function procesarPagoCulqi(token) {
