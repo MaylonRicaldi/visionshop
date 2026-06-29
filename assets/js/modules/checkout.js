@@ -126,30 +126,50 @@ async function validateStock(cart) {
 }
 
 // ---- CULQI CHECKOUT ----
-function initCulqi() {
-  if (typeof CulqiCheckout === "undefined") {
-    console.warn("Culqi JS no cargado. Verifica el script en checkout.html");
-    return;
+function loadCulqiScript() {
+  return new Promise((resolve, reject) => {
+    if (typeof window.CulqiCheckout !== "undefined") return resolve();
+
+    const s = document.createElement("script");
+    s.src = "https://checkout.culqi.com/js/v4";
+    s.onload = () => {
+      // Esperar a que CulqiCheckout esté disponible
+      const check = () => {
+        if (typeof window.CulqiCheckout !== "undefined") return resolve();
+        setTimeout(check, 100);
+      };
+      check();
+    };
+    s.onerror = () => reject(new Error("No se pudo cargar Culqi JS"));
+    document.head.appendChild(s);
+  });
+}
+
+let culqiInstance = null;
+
+async function initCulqi() {
+  try {
+    await loadCulqiScript();
+  } catch {
+    showToast("Error al cargar la pasarela de pago. Verifica tu conexión.");
+    return null;
   }
 
-  const culqiCheckout = new CulqiCheckout({
+  culqiInstance = new window.CulqiCheckout({
     publicKey: CULQI_PUBLIC_KEY,
     settings: {
       title: "VISION SHOP",
       currency: "PEN",
       description: "Pedido VISION SHOP",
-      amount: 0,  // se setea al abrir
+      amount: 0,
     },
     charge: async (token) => {
-      // Culqi llamará esta función cuando tenga un token exitoso
       await processCulqiCharge(token);
     }
   });
 
-  return culqiCheckout;
+  return culqiInstance;
 }
-
-let culqiInstance = null;
 
 async function processCulqiCharge(token) {
   const user = getCurrentUser();
@@ -207,8 +227,8 @@ async function processCulqiCharge(token) {
   }
 }
 
-function openCulqiCheckout() {
-  if (!culqiInstance) culqiInstance = initCulqi();
+async function openCulqiCheckout() {
+  if (!culqiInstance) culqiInstance = await initCulqi();
   if (!culqiInstance) { showToast("Error al cargar Culqi. Recarga la página."); return; }
 
   const total = getTotal();
