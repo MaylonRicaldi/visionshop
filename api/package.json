@@ -1,8 +1,5 @@
 {
   "name": "visionshop-api",
   "version": "1.0.0",
-  "description": "Vercel API for VISION SHOP payments",
-  "dependencies": {
-    "culqi": "^2.0.0"
-  }
+  "description": "Vercel API for VISION SHOP payments"
 }
