@@ -345,7 +345,7 @@ Vision-Shop
 
 # 👨‍💻 Autor
 
-**Maylon Amilcar Ricaldi Solis**
-**Dayana Jessica Javier Curi**
+- **Maylon Amilcar Ricaldi Solis**
+- **Dayana Jessica Javier Curi**
 
 Proyecto desarrollado como plataforma E-commerce utilizando Firebase, Firestore y Culqi para la gestión de productos, autenticación, pedidos y procesamiento de pagos.
